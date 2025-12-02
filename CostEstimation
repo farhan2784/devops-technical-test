@@ -1,0 +1,16 @@
+
+Cost estimate
+
+For EC2 t3.micro:
+
+Resource	Monthly       Cost
+EC2       t3.micro	    $8.47
+EBS       gp3 (20GB)	  $1.92
+
+Data transfer	~$0
+Total	≈ $10.39 / month
+
+For 1M requests:
+Still the same cost (EC2 is fixed price)
+
+No per-request cost as long as you stay in same region
