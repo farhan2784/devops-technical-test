@@ -1,14 +1,36 @@
+Calculating cost estimation for AWS resources created using terraform
 
-Cost estimate
+Step1: List of all AWS resources created in the region ME-CENTRAL-1(UAE)
 
-For EC2 t3.micro:
+#Terraform Command to check all aws resources created
+--terraform state list
 
-Resource	Monthly       Cost
-EC2       t3.micro	    $8.47
-EBS       gp3 (20GB)	  $1.92
+#Output
+aws_internet_gateway.devopstest_igw
+aws_key_pair.devopstest_kp
+aws_route_table.devopstest_public_rt
+aws_route_table_association.devopstest_public_assoc
+aws_security_group.devopstest_pub_sg
+aws_subnet.devopstest_pub_subnet
+aws_vpc.devopstest_vpc
+local_file.private_key
+tls_private_key.devopstest_kp
 
-Data transfer	~$0
-Total	≈ $10.39 / month
+Step2: Identify the AWS pricing for each resource
+
+| Resource                    | Count | Pricing Details              | Monthly Cost |
+| --------------------------- | ----- | ---------------------------- | ------------ |
+| t3.micro EC2                | 1     | $0.0125 per hour (us-east-1) | ~$9          |
+| EBS gp3 8GB                 | 1     | $0                           | ~$0          |
+| VPC, subnet, SG             | 1     | Free                         | $0           |
+| Data transfer (1M requests) | 1     | Assume 1GB/month free tier   | $0           |
+
+free upto 30 GiB of EBS storage, 2 million I/Os, 1 GB of snapshots, and 100 GB of bandwidth to the internet
+3,000 IOPS free and $0.0061/provisioned IOPS-month over 3,000
+Multiply EC2 hourly rate by 24 × 30 (~720 hours) for monthly cost.
+
+Cost Estimatation Monthly
+Total	≈ $9 / month
 
 For 1M requests:
 Still the same cost (EC2 is fixed price)
