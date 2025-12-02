@@ -1,0 +1,8 @@
+
+# It will destroy all resources created from main.tf 
+terraform destroy 
+
+# It will destroy only ec2 instance created from main.tf 
+terraform destroy -target=aws_instance.devopstest_pub_ec2
+
+
