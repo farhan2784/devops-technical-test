@@ -1,0 +1,56 @@
+DevOps Engineer Technical Test 
+
+Exercise 
+• In a programming language of your choice, create a simple web server that responds to 
+GET /hello and responds with “OK” and a 200-status code. 
+• Deploy this web server in an AWS account in a style of your choice. 
+• Use Infrastructure as Code to automate the creation of the resources. 
+• Secure the application in a way you see fit. 
+• Provide a cost estimate of the design. 
+
+Deliverables 
+• Provide the URL and codebase back to Cochlear 
+• Provide the cost of the solution per month, for 1M requests, with a break down per AWS resource 
+• Provide a diagram of your design 
+
+Notes 
+• AWS has free tiers for most resources. You can assume we will not put any load on your 
+URL provided as to not incur your personal costs. However, if you prefer, you can 
+immediately tear down your stack, and instead of a URL, provide a screenshot of a 
+working request, including all request and response headers, status and body. 
+• You are welcome to spend if you like on this, or timebox and discuss future steps with us 
+
+Hints 
+To help with the time taken to do this task, here are some hints. Feel free to use or ignore them 
+
+• You should use this opportunity to demonstrate that you have the technical knowledge 
+to be successful in this role. A successful candidate will be a person who is not just 
+completing tickets, but instead is someone who can provide input to design decisions, 
+follow best practices, and perform peer reviews. 
+• Use Terraform or CloudFormation to do your infrastructure as code, both are modern 
+and well-documented 
+• A “vanity” url (eg https://my-devops-test.com/hello) is not required (purchasing a new 
+domain name is not required). AWS generated urls are fine. 
+• Lambda, Elastic Beanstalk and Kubernetes are quick to set up, but may not show off as much skill as other techniques 
+• Please make any relevant assumptions and state them in your codebase in a logical place 
+• If you wish to use NodeJS for your server, you can set up a zero dependencies server and 
+run wit with node <filename>.js: 
+
+const { createServer } = require('http'); 
+const port = process.env.PORT ?? 8080; 
+createServer(function (req, res) { 
+res.writeHead(200); 
+res.write('OK'); 
+res.end(); 
+}).listen(port); 
+console.log(`Server listening at localhost:${port}`); 
+
+• If you wish to use lambda, some code for that would be: 
+
+export const handler = async (event) => { 
+let response = { 
+statusCode: 200, 
+body: "OK", 
+}; 
+return response; 
+} 
