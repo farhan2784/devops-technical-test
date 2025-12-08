@@ -1,0 +1,88 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker
+  - nodejs
+  - npm
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker ec2-user
+  - mkdir -p /opt/containerized-helloapp
+  - |
+    cat > /opt/containerized-helloapp/server.js << 'EOF'
+    const http = require('http');
+    const port = process.env.PORT || 80;
+    
+    const server = http.createServer((req, res) => {
+      if (req.method === 'GET' && req.url === '/hello') {
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end('OK');
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    });
+    
+    server.listen(port, '0.0.0.0', () =>
+      console.log('Server running on port ' + port)
+    );
+    EOF
+  - |
+    cat > /opt/containerized-helloapp/package.json << 'EOF'
+    {
+      "name": "hello-server",
+      "version": "1.0.0",
+      "main": "server.js",
+      "dependencies": {}
+    }
+    EOF
+  - |
+    cat > /opt/containerized-helloapp/Dockerfile << 'EOF'
+    #------------------------
+    # Stage 1: Build the app
+    FROM node:18-alpine AS builder
+
+    # Create app directory
+    WORKDIR /app
+
+    # Copy app files
+    COPY package*.json ./
+    COPY server.js ./
+
+    # Install only production deps
+    RUN npm install --production
+
+    #--------------------------
+    # Stage 2: Production image
+    FROM node:18-alpine
+    WORKDIR /app
+
+    # Copy only necessary files from builder stage
+    COPY --from=builder /app /app
+
+    # Expose the port
+    EXPOSE 80
+
+    # Start server
+    CMD ["node", "server.js"]
+    EOF
+  - cd /opt/containerized-helloapp 
+  - ### --- Authenticate to ECR ---
+  - AWS_REGION="me-central-1"
+  - ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+  - ECR_URL="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+  - aws ecr get-login-password --region me-central-1 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+  - ### --- Build docker image ---
+  - docker build -t devops-test-hello-server .
+  - ### --- Tag image for ECR ---
+  - docker tag devops-test-hello-server:latest ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/hello-server-repo:latest
+  - ### --- Push to ECR ---
+  - docker push ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/hello-server-repo:latest
+  - ### --- Run container FROM ECR ---
+  - #docker rmi -f devops-test-hello-server:latest
+  - #docker pull ${ECR_URL}/hello-server-repo:latest
+  - docker run -d -p 80:80 --name devops-test devops-test-hello-server:latest
